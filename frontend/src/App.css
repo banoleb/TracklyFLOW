@@ -1,0 +1,171 @@
+/* ── Reset & base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+       background: #0f1117; color: #e2e8f0; height: 100vh; overflow: hidden; }
+button { cursor: pointer; border: none; background: none; font: inherit; }
+input, select, textarea { font: inherit; }
+ul { list-style: none; }
+
+/* ── App shell ── */
+.app-shell { display: flex; flex-direction: column; height: 100vh; }
+.app-body  { display: flex; flex: 1; overflow: hidden; }
+
+/* ── Navbar ── */
+.navbar { display: flex; align-items: center; justify-content: space-between;
+          height: 56px; padding: 0 20px; background: #1a1d27;
+          border-bottom: 1px solid #2d3145; flex-shrink: 0; }
+.navbar-brand { display: flex; align-items: center; gap: 10px; }
+.brand-icon  { font-size: 22px; }
+.brand-name  { font-size: 18px; font-weight: 700; color: #7c8cf8; }
+.navbar-user { display: flex; align-items: center; gap: 14px; }
+.nav-username { font-size: 14px; color: #a0aec0; }
+.btn-logout  { font-size: 13px; color: #fc8181; padding: 5px 12px;
+               border: 1px solid #fc8181; border-radius: 6px; }
+.btn-logout:hover { background: #fc818122; }
+
+/* ── Sidebar ── */
+.chat-sidebar { width: 280px; background: #141720; border-right: 1px solid #2d3145;
+                display: flex; flex-direction: column; flex-shrink: 0; }
+.sidebar-header { display: flex; align-items: center; justify-content: space-between;
+                  padding: 16px; border-bottom: 1px solid #2d3145; }
+.sidebar-title  { font-size: 16px; font-weight: 600; }
+.btn-icon       { font-size: 20px; color: #7c8cf8; line-height: 1; padding: 2px 6px; border-radius: 6px; }
+.btn-icon:hover { background: #2d3145; }
+.sidebar-loading { padding: 16px; color: #718096; font-size: 14px; }
+.chat-list { flex: 1; overflow-y: auto; padding: 8px 0; }
+.chat-list-empty { padding: 16px; font-size: 14px; color: #718096; }
+.chat-list-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+                  cursor: pointer; transition: background 0.15s; }
+.chat-list-item:hover { background: #1e2235; }
+.chat-list-item.active { background: #2d3456; }
+.chat-list-icon { font-size: 20px; }
+.chat-list-info { display: flex; flex-direction: column; }
+.chat-list-name { font-size: 14px; font-weight: 600; }
+.chat-list-type { font-size: 11px; color: #718096; text-transform: uppercase; }
+
+/* ── Main content ── */
+.main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.no-chat-selected { flex: 1; display: flex; align-items: center; justify-content: center; }
+.no-chat-placeholder { text-align: center; color: #4a5568; }
+.no-chat-placeholder span { font-size: 64px; }
+.no-chat-placeholder p { margin: 16px 0; font-size: 16px; }
+
+/* ── Chat window ── */
+.chat-window { display: flex; flex-direction: column; height: 100%; }
+.chat-header { padding: 16px 20px; border-bottom: 1px solid #2d3145; background: #141720;
+               display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.chat-header-info { display: flex; align-items: center; gap: 10px; }
+.chat-type-badge { font-size: 11px; background: #2d3456; color: #7c8cf8;
+                   border-radius: 4px; padding: 2px 8px; text-transform: uppercase; font-weight: 600; }
+.chat-header h3 { font-size: 16px; font-weight: 700; }
+
+.messages-list { flex: 1; overflow-y: auto; padding: 16px 20px;
+                 display: flex; flex-direction: column; gap: 8px; }
+.messages-empty { text-align: center; color: #4a5568; padding: 40px; }
+.typing-indicator { font-size: 12px; color: #718096; font-style: italic; }
+
+/* ── Message bubble ── */
+.message-bubble { max-width: 70%; display: flex; flex-direction: column;
+                  padding: 10px 14px; border-radius: 14px; font-size: 14px; line-height: 1.5; }
+.message-bubble.own   { align-self: flex-end; background: #2d3456; border-bottom-right-radius: 4px; }
+.message-bubble.other { align-self: flex-start; background: #1e2235; border-bottom-left-radius: 4px; }
+.message-author { font-size: 11px; color: #7c8cf8; font-weight: 600; margin-bottom: 4px; }
+.message-content { word-break: break-word; }
+.message-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+.message-time   { font-size: 11px; color: #718096; }
+.message-edited { font-size: 11px; color: #4a5568; }
+.message-actions { display: flex; gap: 4px; margin-left: auto; opacity: 0; transition: opacity 0.15s; }
+.message-bubble:hover .message-actions { opacity: 1; }
+.icon-btn { font-size: 13px; padding: 2px 4px; border-radius: 4px; }
+.icon-btn:hover { background: #2d3145; }
+.message-edit { display: flex; gap: 6px; align-items: center; }
+.message-edit input { flex: 1; background: #0f1117; border: 1px solid #2d3145; border-radius: 6px;
+                      padding: 4px 8px; color: #e2e8f0; font-size: 14px; }
+
+/* ── Message input ── */
+.message-input-bar { display: flex; gap: 10px; padding: 16px 20px;
+                     border-top: 1px solid #2d3145; background: #141720; flex-shrink: 0; }
+.message-input-bar input { flex: 1; background: #1e2235; border: 1px solid #2d3145;
+                            border-radius: 10px; padding: 10px 16px; color: #e2e8f0;
+                            font-size: 14px; outline: none; }
+.message-input-bar input:focus { border-color: #7c8cf8; }
+.btn-send { width: 42px; height: 42px; background: #7c8cf8; color: white;
+            border-radius: 50%; font-size: 18px; display: flex; align-items: center;
+            justify-content: center; flex-shrink: 0; transition: background 0.15s; }
+.btn-send:hover:not(:disabled) { background: #6472e8; }
+.btn-send:disabled { opacity: 0.5; cursor: default; }
+
+/* ── Auth ── */
+.auth-page { min-height: 100vh; display: flex; align-items: center;
+             justify-content: center; background: #0f1117; padding: 20px; }
+.auth-container { width: 100%; max-width: 400px; }
+.auth-brand { text-align: center; margin-bottom: 32px; }
+.brand-icon-large { font-size: 52px; display: block; margin-bottom: 8px; }
+.auth-brand h1 { font-size: 28px; font-weight: 800; color: #7c8cf8; }
+.auth-brand p  { color: #718096; margin-top: 4px; }
+.auth-form { background: #141720; border-radius: 16px; padding: 32px;
+             border: 1px solid #2d3145; }
+.auth-form h2 { font-size: 20px; font-weight: 700; margin-bottom: 24px; }
+.auth-switch { text-align: center; margin-top: 16px; font-size: 14px; color: #718096; }
+
+/* ── Forms ── */
+.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.form-group label { font-size: 13px; font-weight: 600; color: #a0aec0; }
+.form-group input, .form-group select {
+  background: #1e2235; border: 1px solid #2d3145; border-radius: 8px;
+  padding: 10px 14px; color: #e2e8f0; outline: none; }
+.form-group input:focus, .form-group select:focus { border-color: #7c8cf8; }
+
+/* ── Buttons ── */
+.btn-primary   { width: 100%; padding: 11px; background: #7c8cf8; color: white;
+                 border-radius: 8px; font-weight: 600; font-size: 14px; }
+.btn-primary:hover:not(:disabled) { background: #6472e8; }
+.btn-primary:disabled { opacity: 0.5; cursor: default; }
+.btn-secondary { padding: 9px 16px; background: #1e2235; color: #e2e8f0;
+                 border: 1px solid #2d3145; border-radius: 8px; font-size: 14px; }
+.btn-secondary:hover { background: #2d3145; }
+.btn-small     { padding: 4px 10px; background: #7c8cf8; color: white;
+                 border-radius: 6px; font-size: 12px; }
+.btn-small.ghost { background: transparent; border: 1px solid #4a5568; color: #a0aec0; }
+.link-btn      { background: none; color: #7c8cf8; font-size: 14px; text-decoration: underline; }
+
+/* ── Error banner ── */
+.error-banner { background: #feb2b233; border: 1px solid #fc8181; border-radius: 8px;
+                padding: 10px 14px; font-size: 13px; color: #fc8181; margin-bottom: 16px; }
+
+/* ── Modal ── */
+.modal-overlay { position: fixed; inset: 0; background: #0008;
+                 display: flex; align-items: center; justify-content: center; z-index: 100; }
+.modal { background: #141720; border: 1px solid #2d3145; border-radius: 16px;
+         width: 100%; max-width: 480px; max-height: 90vh;
+         display: flex; flex-direction: column; overflow: hidden; }
+.modal-header { display: flex; align-items: center; justify-content: space-between;
+                padding: 20px 24px; border-bottom: 1px solid #2d3145; }
+.modal-header h3 { font-size: 18px; font-weight: 700; }
+.btn-close { font-size: 18px; color: #718096; padding: 4px 8px; border-radius: 6px; }
+.btn-close:hover { background: #2d3145; color: #e2e8f0; }
+.modal-body { padding: 20px 24px; overflow-y: auto; flex: 1; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid #2d3145;
+                display: flex; gap: 10px; justify-content: flex-end; }
+.modal-footer .btn-primary { width: auto; }
+
+/* ── User search ── */
+.search-row { display: flex; gap: 8px; }
+.search-row input { flex: 1; background: #1e2235; border: 1px solid #2d3145;
+                    border-radius: 8px; padding: 9px 14px; color: #e2e8f0; }
+.user-search-results { margin-top: 10px; border: 1px solid #2d3145;
+                       border-radius: 8px; overflow: hidden; }
+.user-result { display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+               cursor: pointer; transition: background 0.15s; }
+.user-result:hover   { background: #1e2235; }
+.user-result.selected { background: #2d3456; }
+.user-avatar-placeholder { width: 32px; height: 32px; border-radius: 50%;
+                            background: #7c8cf8; display: flex; align-items: center;
+                            justify-content: center; font-size: 14px; font-weight: 700;
+                            color: white; flex-shrink: 0; }
+.checkmark { margin-left: auto; color: #7c8cf8; font-weight: 700; }
+.selected-users { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.tag { display: flex; align-items: center; gap: 6px; background: #2d3456;
+       border-radius: 20px; padding: 4px 12px; font-size: 13px; }
+.tag button { color: #a0aec0; font-size: 12px; }
+
