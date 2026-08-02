@@ -55,3 +55,12 @@ export interface ApiResponse<T> {
 }
 
 export type TaskStatus = 'todo' | 'in_progress' | 'review' | 'done';
+
+export interface Note {
+  id: number;
+  title: string | null;
+  content: string;
+  user_id: number;
+  created_at: string;
+  updated_at: string;
+}

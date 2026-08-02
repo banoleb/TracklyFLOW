@@ -22,6 +22,7 @@ class User(db.Model):
     created_tasks = db.relationship(
         "Task", foreign_keys="Task.created_by", back_populates="creator", lazy="dynamic"
     )
+    notes = db.relationship("Note", back_populates="author", lazy="dynamic")
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
