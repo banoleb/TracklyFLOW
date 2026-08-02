@@ -106,3 +106,12 @@ export const tasksApi = {
   ) => api.patch(`/tasks/${id}`, data),
   delete: (id: number) => api.delete(`/tasks/${id}`),
 };
+
+export const notesApi = {
+  list: (params?: { page?: number }) => api.get('/notes', { params }),
+  create: (data: { title?: string; content: string }) => api.post('/notes', data),
+  getById: (id: number) => api.get(`/notes/${id}`),
+  update: (id: number, data: Partial<{ title: string; content: string }>) =>
+    api.patch(`/notes/${id}`, data),
+  delete: (id: number) => api.delete(`/notes/${id}`),
+};

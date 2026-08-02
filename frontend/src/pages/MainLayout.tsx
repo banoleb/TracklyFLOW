@@ -1,15 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { useChatStore } from '../store/chatStore';
+import { useNotesStore } from '../store/notesStore';
 import { getSocket, joinChat, leaveChat } from '../utils/socket';
 import { Message } from '../types';
 import Navbar from '../components/common/Navbar';
 import ChatSidebar from '../components/chat/ChatSidebar';
 import ChatWindow from '../components/chat/ChatWindow';
 import NewChatModal from '../components/chat/NewChatModal';
+import NotesSidebar from '../components/notes/NotesSidebar';
+import NoteEditor from '../components/notes/NoteEditor';
+
+type View = 'chat' | 'notes';
 
 const MainLayout: React.FC = () => {
   const { activeChat, fetchChats, addMessage, updateMessage, removeMessage } = useChatStore();
+  const { fetchNotes } = useNotesStore();
   const [showNewChat, setShowNewChat] = useState(false);
+  const [view, setView] = useState<View>('chat');
 
   // Connect socket and load chats on mount
   useEffect(() => {
@@ -31,6 +38,13 @@ const MainLayout: React.FC = () => {
     };
   }, [fetchChats, addMessage, updateMessage, removeMessage]);
 
+  // Load notes when switching to notes view
+  useEffect(() => {
+    if (view === 'notes') {
+      fetchNotes();
+    }
+  }, [view, fetchNotes]);
+
   // Join/leave socket room when active chat changes
   useEffect(() => {
     if (activeChat) {
@@ -42,23 +56,48 @@ const MainLayout: React.FC = () => {
   return (
     <div className="app-shell">
       <Navbar />
+      <div className="view-tabs">
+        <button
+          className={`view-tab${view === 'chat' ? ' active' : ''}`}
+          onClick={() => setView('chat')}
+        >
+          💬 Messages
+        </button>
+        <button
+          className={`view-tab${view === 'notes' ? ' active' : ''}`}
+          onClick={() => setView('notes')}
+        >
+          📝 Notes
+        </button>
+      </div>
       <div className="app-body">
-        <ChatSidebar onNewChat={() => setShowNewChat(true)} />
-        <main className="main-content">
-          {activeChat ? (
-            <ChatWindow chat={activeChat} />
-          ) : (
-            <div className="no-chat-selected">
-              <div className="no-chat-placeholder">
-                <span>💬</span>
-                <p>Select a conversation or start a new one</p>
-                <button className="btn-primary" onClick={() => setShowNewChat(true)}>
-                  New Chat
-                </button>
-              </div>
-            </div>
-          )}
-        </main>
+        {view === 'chat' ? (
+          <>
+            <ChatSidebar onNewChat={() => setShowNewChat(true)} />
+            <main className="main-content">
+              {activeChat ? (
+                <ChatWindow chat={activeChat} />
+              ) : (
+                <div className="no-chat-selected">
+                  <div className="no-chat-placeholder">
+                    <span>💬</span>
+                    <p>Select a conversation or start a new one</p>
+                    <button className="btn-primary" onClick={() => setShowNewChat(true)}>
+                      New Chat
+                    </button>
+                  </div>
+                </div>
+              )}
+            </main>
+          </>
+        ) : (
+          <>
+            <NotesSidebar />
+            <main className="main-content">
+              <NoteEditor />
+            </main>
+          </>
+        )}
       </div>
       {showNewChat && <NewChatModal onClose={() => setShowNewChat(false)} />}
     </div>
