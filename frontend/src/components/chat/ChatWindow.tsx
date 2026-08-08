@@ -147,8 +147,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chat }) => {
       {/* Attachment preview */}
       {attachment && (
         <div className="attachment-preview">
-          {attachPreview ? (
-            <img src={attachPreview} alt={attachment.name} className="attach-thumb" />
+          {attachPreview && attachPreview.startsWith('blob:') ? (
+            <img src={attachPreview} alt="" className="attach-thumb" />
           ) : (
             <span className="attach-file-icon">📎</span>
           )}
