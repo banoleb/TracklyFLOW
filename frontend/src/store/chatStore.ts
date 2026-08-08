@@ -12,6 +12,7 @@ interface ChatState {
   fetchChats: () => Promise<void>;
   setActiveChat: (chat: Chat | null) => void;
   fetchMessages: (chatId: number) => Promise<void>;
+  refreshMessages: (chatId: number) => Promise<void>;
   addMessage: (message: Message) => void;
   updateMessage: (message: Message) => void;
   removeMessage: (messageId: number, chatId: number) => void;
@@ -49,6 +50,25 @@ export const useChatStore = create<ChatState>((set, get) => ({
     } catch {
       set({ loadingMessages: false });
     }
+  },
+
+  refreshMessages: async (chatId) => {
+    const existing = get().messages[chatId] || [];
+    const lastId = existing.length > 0 ? existing[existing.length - 1].id : undefined;
+    try {
+      const res = await messagesApi.list(chatId, 1, lastId);
+      const newMsgs: Message[] = res.data.data.messages;
+      if (newMsgs.length === 0) return;
+      set((state) => {
+        const current = state.messages[chatId] || [];
+        const existingIds = new Set(current.map((m) => m.id));
+        const toAppend = newMsgs.filter((m) => !existingIds.has(m.id));
+        if (toAppend.length === 0) return state;
+        return {
+          messages: { ...state.messages, [chatId]: [...current, ...toAppend] },
+        };
+      });
+    } catch {}
   },
 
   addMessage: (message) => {

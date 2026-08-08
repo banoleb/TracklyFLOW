@@ -21,9 +21,14 @@ def list_messages(chat_id):
 
     page = request.args.get("page", 1, type=int)
     per_page = min(request.args.get("per_page", 50, type=int), 100)
+    since_id = request.args.get("since_id", type=int)
+
+    query = Message.query.filter_by(chat_id=chat_id)
+    if since_id is not None:
+        query = query.filter(Message.id > since_id)
 
     paginated = (
-        Message.query.filter_by(chat_id=chat_id)
+        query
         .order_by(Message.created_at.desc())
         .paginate(page=page, per_page=per_page, error_out=False)
     )

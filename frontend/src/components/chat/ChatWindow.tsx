@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Chat, Message } from '../../types';
 import { useChatStore } from '../../store/chatStore';
 import { useAuthStore } from '../../store/authStore';
@@ -10,14 +10,18 @@ interface ChatWindowProps {
   chat: Chat;
 }
 
+const POLL_INTERVAL_MS = 10_000;
+
 const ChatWindow: React.FC<ChatWindowProps> = ({ chat }) => {
   const { user } = useAuthStore();
-  const { messages, fetchMessages, addMessage } = useChatStore();
+  const { messages, fetchMessages, refreshMessages, addMessage } = useChatStore();
   const [content, setContent] = useState('');
   const [sending, setSending] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [typingUsers] = useState<number[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
   const typingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const chatMessages: Message[] = messages[chat.id] || [];
 
@@ -28,6 +32,23 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chat }) => {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages.length]);
+
+  // Auto-poll every POLL_INTERVAL_MS to catch any missed socket events
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refreshMessages(chat.id);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [chat.id, refreshMessages]);
+
+  useEffect(() => {
+    pollRef.current = setInterval(handleRefresh, POLL_INTERVAL_MS);
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, [handleRefresh]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,6 +78,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chat }) => {
           <span className="chat-type-badge">{chat.type}</span>
           <h3>{chatName}</h3>
         </div>
+        <button
+          className="btn-refresh"
+          onClick={handleRefresh}
+          disabled={refreshing}
+          title="Load new messages"
+        >
+          {refreshing ? '⟳' : '↻'} Refresh
+        </button>
       </div>
 
       <div className="messages-list">

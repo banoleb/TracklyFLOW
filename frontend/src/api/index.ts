@@ -80,8 +80,8 @@ export const chatsApi = {
 };
 
 export const messagesApi = {
-  list: (chatId: number, page = 1) =>
-    api.get(`/messages/chats/${chatId}/messages`, { params: { page } }),
+  list: (chatId: number, page = 1, sinceId?: number) =>
+    api.get(`/messages/chats/${chatId}/messages`, { params: { page, ...(sinceId !== undefined && { since_id: sinceId }) } }),
   send: (chatId: number, content: string) =>
     api.post(`/messages/chats/${chatId}/messages`, { content }),
   edit: (messageId: number, content: string) =>
