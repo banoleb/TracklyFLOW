@@ -10,20 +10,28 @@ from app.utils.response import success, error
 
 messages_bp = Blueprint("messages", __name__)
 
-ALLOWED_ATTACHMENT_EXTENSIONS = {
-    "png", "jpg", "jpeg", "gif", "webp",
-    "pdf", "txt", "csv", "doc", "docx",
-    "xls", "xlsx", "zip", "mp4", "mp3",
+# Maps accepted MIME types to a fixed safe extension (values are hard-coded literals
+# so the extension used in the filesystem path is never derived from user input).
+_MIME_TO_EXT: dict = {
+    "image/png": "png",
+    "image/jpeg": "jpg",
+    "image/gif": "gif",
+    "image/webp": "webp",
+    "application/pdf": "pdf",
+    "text/plain": "txt",
+    "text/csv": "csv",
+    "application/msword": "doc",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+    "application/vnd.ms-excel": "xls",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
+    "application/zip": "zip",
+    "video/mp4": "mp4",
+    "audio/mpeg": "mp3",
 }
 
 
 def _is_member(chat_id, user_id):
     return ChatMember.query.filter_by(chat_id=chat_id, user_id=user_id).first() is not None
-
-
-def _allowed_attachment(filename):
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_ATTACHMENT_EXTENSIONS
-
 
 @messages_bp.route("/chats/<int:chat_id>/messages", methods=["GET"])
 @jwt_required()
@@ -72,15 +80,13 @@ def send_message(chat_id):
         content = (request.form.get("content") or "").strip() or None
         file = request.files.get("file")
         if file and file.filename:
-            safe_name = secure_filename(file.filename)
-            if not safe_name or not _allowed_attachment(safe_name):
+            # Derive extension from the MIME type using a hard-coded map so that
+            # no user-supplied string ever reaches os.path.join (breaks taint chain).
+            mime = (file.content_type or "").split(";")[0].strip().lower()
+            ext = _MIME_TO_EXT.get(mime)
+            if ext is None:
                 return error("File type not allowed", 422)
-            # Derive extension from sanitized name and re-check against whitelist
-            # to guarantee no path-traversal characters enter the filename
-            ext_candidate = safe_name.rsplit(".", 1)[1].lower()
-            if ext_candidate not in ALLOWED_ATTACHMENT_EXTENSIONS:
-                return error("File type not allowed", 422)
-            ext = ext_candidate
+            safe_name = secure_filename(file.filename) or ("attachment." + ext)
             unique_name = "msg_" + str(chat_id) + "_" + uuid.uuid4().hex + "." + ext
             upload_folder = os.path.join(current_app.config["UPLOAD_FOLDER"], "messages")
             os.makedirs(upload_folder, exist_ok=True)
