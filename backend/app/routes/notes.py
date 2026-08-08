@@ -37,8 +37,6 @@ def create_note():
     data = request.get_json(silent=True) or {}
 
     content = (data.get("content") or "").strip()
-    if not content:
-        return error("content is required", 422)
 
     title = (data.get("title") or "").strip() or None
 
