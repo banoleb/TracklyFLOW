@@ -121,7 +121,7 @@ def serve_message_upload(filename):
     return send_from_directory(upload_folder, filename)
 
 
-@messages_bp.route("/messages/<int:message_id>", methods=["PATCH"])
+@messages_bp.route("/<int:message_id>", methods=["PATCH"])
 @jwt_required()
 def edit_message(message_id):
     user_id = int(get_jwt_identity())
@@ -145,7 +145,7 @@ def edit_message(message_id):
     return success(msg_data)
 
 
-@messages_bp.route("/messages/<int:message_id>", methods=["DELETE"])
+@messages_bp.route("/<int:message_id>", methods=["DELETE"])
 @jwt_required()
 def delete_message(message_id):
     user_id = int(get_jwt_identity())

@@ -42,6 +42,13 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwn }) => {
     } catch {}
   };
 
+  const handleCopy = async () => {
+    if (!message.content) return;
+    try {
+      await navigator.clipboard.writeText(message.content);
+    } catch {}
+  };
+
   const time = format(new Date(message.created_at), 'HH:mm');
   const isEdited = message.created_at !== message.updated_at;
 
@@ -69,8 +76,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwn }) => {
             }}
             autoFocus
           />
-          <button onClick={handleEdit} className="btn-small">Save</button>
-          <button onClick={() => setEditing(false)} className="btn-small ghost">Cancel</button>
+          <button type="button" onClick={handleEdit} className="btn-small">Save</button>
+          <button type="button" onClick={() => setEditing(false)} className="btn-small ghost">Cancel</button>
         </div>
       ) : (
         <>
@@ -110,12 +117,17 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwn }) => {
       <div className="message-meta">
         <span className="message-time">{time}</span>
         {isEdited && <span className="message-edited">(edited)</span>}
-        {isOwn && !editing && (
+        {!editing && (
           <span className="message-actions">
             {message.content && (
-              <button className="icon-btn" onClick={() => setEditing(true)} title="Edit">✏️</button>
+              <button type="button" className="icon-btn" onClick={handleCopy} title="Copy">📋</button>
             )}
-            <button className="icon-btn" onClick={handleDelete} title="Delete">🗑️</button>
+            {isOwn && message.content && (
+              <button type="button" className="icon-btn" onClick={() => setEditing(true)} title="Edit">✏️</button>
+            )}
+            {isOwn && (
+              <button type="button" className="icon-btn" onClick={handleDelete} title="Delete">🗑️</button>
+            )}
           </span>
         )}
       </div>
