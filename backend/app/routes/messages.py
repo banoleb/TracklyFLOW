@@ -87,7 +87,7 @@ def send_message(chat_id):
             if ext is None:
                 return error("File type not allowed", 422)
             safe_name = secure_filename(file.filename) or ("attachment." + ext)
-            unique_name = "msg_" + str(chat_id) + "_" + uuid.uuid4().hex + "." + ext
+            unique_name = "msg_" + uuid.uuid4().hex + "." + ext
             upload_folder = os.path.join(current_app.config["UPLOAD_FOLDER"], "messages")
             os.makedirs(upload_folder, exist_ok=True)
             file.save(os.path.join(upload_folder, unique_name))
