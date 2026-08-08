@@ -1,5 +1,8 @@
-from flask import Blueprint, request
+import os
+import uuid
+from flask import Blueprint, request, current_app, send_from_directory
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from werkzeug.utils import secure_filename
 from app.extensions import db, socketio
 from app.models.message import Message
 from app.models.chat import ChatMember
@@ -7,9 +10,19 @@ from app.utils.response import success, error
 
 messages_bp = Blueprint("messages", __name__)
 
+ALLOWED_ATTACHMENT_EXTENSIONS = {
+    "png", "jpg", "jpeg", "gif", "webp",
+    "pdf", "txt", "csv", "doc", "docx",
+    "xls", "xlsx", "zip", "mp4", "mp3",
+}
+
 
 def _is_member(chat_id, user_id):
     return ChatMember.query.filter_by(chat_id=chat_id, user_id=user_id).first() is not None
+
+
+def _allowed_attachment(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_ATTACHMENT_EXTENSIONS
 
 
 @messages_bp.route("/chats/<int:chat_id>/messages", methods=["GET"])
@@ -51,21 +64,50 @@ def send_message(chat_id):
     if not _is_member(chat_id, user_id):
         return error("Access denied", 403)
 
-    data = request.get_json(silent=True) or {}
-    content = (data.get("content") or "").strip()
-    if not content:
-        return error("Message content cannot be empty", 422)
+    attachment_url = None
+    attachment_name = None
 
-    msg = Message(chat_id=chat_id, user_id=user_id, content=content)
+    # Support both multipart/form-data (with optional file) and application/json
+    if request.content_type and "multipart/form-data" in request.content_type:
+        content = (request.form.get("content") or "").strip() or None
+        file = request.files.get("file")
+        if file and file.filename:
+            if not _allowed_attachment(file.filename):
+                return error("File type not allowed", 422)
+            ext = file.filename.rsplit(".", 1)[1].lower()
+            safe_name = secure_filename(file.filename)
+            unique_name = f"msg_{chat_id}_{uuid.uuid4().hex}.{ext}"
+            upload_folder = os.path.join(current_app.config["UPLOAD_FOLDER"], "messages")
+            os.makedirs(upload_folder, exist_ok=True)
+            file.save(os.path.join(upload_folder, unique_name))
+            attachment_url = f"/api/messages/uploads/{unique_name}"
+            attachment_name = safe_name
+    else:
+        data = request.get_json(silent=True) or {}
+        content = (data.get("content") or "").strip() or None
+
+    if not content and not attachment_url:
+        return error("Message must have content or an attachment", 422)
+
+    msg = Message(
+        chat_id=chat_id,
+        user_id=user_id,
+        content=content,
+        attachment_url=attachment_url,
+        attachment_name=attachment_name,
+    )
     db.session.add(msg)
     db.session.commit()
 
     msg_data = msg.to_dict()
-
-    # Emit real-time event to the chat room
     socketio.emit("new_message", msg_data, room=f"chat_{chat_id}")
-
     return success(msg_data, status_code=201)
+
+
+@messages_bp.route("/uploads/<path:filename>", methods=["GET"])
+def serve_message_upload(filename):
+    upload_folder = os.path.join(current_app.config["UPLOAD_FOLDER"], "messages")
+    return send_from_directory(upload_folder, filename)
 
 
 @messages_bp.route("/messages/<int:message_id>", methods=["PATCH"])
