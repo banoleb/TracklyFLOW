@@ -65,7 +65,16 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chat }) => {
     const file = e.target.files?.[0] ?? null;
     setAttachment(file);
     if (file && IMAGE_TYPES.includes(file.type)) {
-      setAttachPreview(URL.createObjectURL(file));
+      // Use FileReader so the preview is a self-contained data URL,
+      // completely independent of the original file path.
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const result = ev.target?.result;
+        if (typeof result === 'string' && result.startsWith('data:image/')) {
+          setAttachPreview(result);
+        }
+      };
+      reader.readAsDataURL(file);
     } else {
       setAttachPreview(null);
     }
@@ -147,7 +156,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chat }) => {
       {/* Attachment preview */}
       {attachment && (
         <div className="attachment-preview">
-          {attachPreview && attachPreview.startsWith('blob:') ? (
+          {attachPreview && attachPreview.startsWith('data:image/') ? (
             <img src={attachPreview} alt="" className="attach-thumb" />
           ) : (
             <span className="attach-file-icon">📎</span>

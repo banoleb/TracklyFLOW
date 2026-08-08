@@ -75,12 +75,17 @@ def send_message(chat_id):
             safe_name = secure_filename(file.filename)
             if not safe_name or not _allowed_attachment(safe_name):
                 return error("File type not allowed", 422)
-            ext = safe_name.rsplit(".", 1)[1].lower()
-            unique_name = f"msg_{chat_id}_{uuid.uuid4().hex}.{ext}"
+            # Derive extension from sanitized name and re-check against whitelist
+            # to guarantee no path-traversal characters enter the filename
+            ext_candidate = safe_name.rsplit(".", 1)[1].lower()
+            if ext_candidate not in ALLOWED_ATTACHMENT_EXTENSIONS:
+                return error("File type not allowed", 422)
+            ext = ext_candidate
+            unique_name = "msg_" + str(chat_id) + "_" + uuid.uuid4().hex + "." + ext
             upload_folder = os.path.join(current_app.config["UPLOAD_FOLDER"], "messages")
             os.makedirs(upload_folder, exist_ok=True)
             file.save(os.path.join(upload_folder, unique_name))
-            attachment_url = f"/api/messages/uploads/{unique_name}"
+            attachment_url = "/api/messages/uploads/" + unique_name
             attachment_name = safe_name
     else:
         data = request.get_json(silent=True) or {}
