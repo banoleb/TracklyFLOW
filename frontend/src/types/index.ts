@@ -29,7 +29,9 @@ export interface Message {
   chat_id: number;
   user_id: number | null;
   author: User | null;
-  content: string;
+  content: string | null;
+  attachment_url: string | null;
+  attachment_name: string | null;
   created_at: string;
   updated_at: string;
 }

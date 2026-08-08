@@ -9,8 +9,9 @@ import ChatWindow from '../components/chat/ChatWindow';
 import NewChatModal from '../components/chat/NewChatModal';
 import NotesSidebar from '../components/notes/NotesSidebar';
 import NoteEditor from '../components/notes/NoteEditor';
+import TasksBoard from '../components/tasks/TasksBoard';
 
-type View = 'chat' | 'notes';
+type View = 'chat' | 'notes' | 'tasks';
 
 const MainLayout: React.FC = () => {
   const { activeChat, fetchChats, addMessage, updateMessage, removeMessage } = useChatStore();
@@ -69,6 +70,12 @@ const MainLayout: React.FC = () => {
         >
           📝 Notes
         </button>
+        <button
+          className={`view-tab${view === 'tasks' ? ' active' : ''}`}
+          onClick={() => setView('tasks')}
+        >
+          ✅ Tasks
+        </button>
       </div>
       <div className="app-body">
         {view === 'chat' ? (
@@ -90,13 +97,17 @@ const MainLayout: React.FC = () => {
               )}
             </main>
           </>
-        ) : (
+        ) : view === 'notes' ? (
           <>
             <NotesSidebar />
             <main className="main-content">
               <NoteEditor />
             </main>
           </>
+        ) : (
+          <main className="main-content">
+            <TasksBoard />
+          </main>
         )}
       </div>
       {showNewChat && <NewChatModal onClose={() => setShowNewChat(false)} />}

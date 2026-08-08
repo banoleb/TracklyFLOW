@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useNotesStore } from '../../store/notesStore';
 
 const NoteEditor: React.FC = () => {
@@ -102,6 +104,15 @@ const NoteEditor: React.FC = () => {
         value={content}
         onChange={handleContentChange}
       />
+      <div className="note-markdown-preview message-markdown">
+        {content.trim() ? (
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {content}
+          </ReactMarkdown>
+        ) : (
+          <p className="note-preview-placeholder">Markdown preview will appear here…</p>
+        )}
+      </div>
     </div>
   );
 };
